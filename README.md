@@ -7,19 +7,19 @@ The objective of this project is to demonstrate the implementation of real-time 
 
 🚀 Features
 
- Real-time video communication
- Real-time audio communication
- Text chat during video call
- Mute / Unmute microphone
- Camera On / Off toggle
+ Real-time video communication,
+ Real-time audio communication,
+ Text chat during video call,
+ Mute / Unmute microphone,
+ Camera On / Off toggle,
  Peer-to-peer WebRTC connection
 
 🛠️ Technologies Used
 
-HTML
-CSS
-JavaScript
-Node.js
-Express.js
-Socket.io
+HTML,
+CSS,
+JavaScript,
+Node.js,
+Express.js,
+Socket.io,
 WebRTC API
