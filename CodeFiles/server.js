@@ -9,25 +9,56 @@ const io = socketIO(server);
 app.use(express.static("public"));
 
 io.on("connection", (socket) => {
-    console.log("User connected");
+    console.log("User connected:", socket.id);
 
-    socket.on("offer", (data) => {
-        socket.broadcast.emit("offer", data);
+    // Join room
+    socket.on("join-room", (roomId) => {
+        socket.join(roomId);
+        socket.roomId = roomId;
+
+        console.log(`${socket.id} joined room ${roomId}`);
+
+        const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
+
+        // Send existing users to new user
+        socket.emit("existing-users", clients.filter(id => id !== socket.id));
+
+        // Notify others
+        socket.to(roomId).emit("user-connected", socket.id);
     });
 
-    socket.on("answer", (data) => {
-        socket.broadcast.emit("answer", data);
+    // Offer
+    socket.on("offer", ({ offer, to }) => {
+        io.to(to).emit("offer", { offer, from: socket.id });
     });
 
-    socket.on("ice-candidate", (data) => {
-        socket.broadcast.emit("ice-candidate", data);
+    // Answer
+    socket.on("answer", ({ answer, to }) => {
+        io.to(to).emit("answer", { answer, from: socket.id });
     });
 
+    // ICE Candidate
+    socket.on("ice-candidate", ({ candidate, to }) => {
+        io.to(to).emit("ice-candidate", { candidate, from: socket.id });
+    });
+
+    // Chat (room based)
     socket.on("chat-message", (message) => {
-        socket.broadcast.emit("chat-message", message);
+        if (socket.roomId) {
+            socket.to(socket.roomId).emit("chat-message", message);
+        }
+    });
+
+    // Disconnect
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+
+        if (socket.roomId) {
+            socket.to(socket.roomId).emit("user-disconnected", socket.id);
+        }
     });
 });
 
-server.listen(3000, () => {
+server.listen(3000, "0.0.0.0", () => {
     console.log("Server running on http://localhost:3000");
 });

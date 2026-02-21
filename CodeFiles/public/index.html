@@ -1,29 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebRTC Video App</title>
+    <meta charset="UTF-8">
+    <title>WebRTC LAN Video Meeting</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>WebRTC Video Chat</h2>
+<h2>WebRTC LAN Video Meeting</h2>
 
-<video id="localVideo" autoplay muted></video>
-<video id="remoteVideo" autoplay></video>
+<!-- ================= ROOM SECTION ================= -->
+<div id="roomSection">
+    <input type="text" id="roomInput" placeholder="Enter Room ID">
+    <button id="joinBtn">Join Room</button>
+</div>
+
+<hr>
+
+<!-- ================= VIDEO SECTION ================= -->
+<div id="videoContainer">
+
+    <!-- Local Video -->
+    <div>
+        <h4>My Video</h4>
+        <video id="localVideo" autoplay muted playsinline width="300"></video>
+    </div>
+
+    <!-- Remote videos will be added dynamically here -->
+</div>
 
 <br>
 
-<button id="muteBtn">Mute</button>
-<button id="cameraBtn">Camera Off</button>
-
+<!-- ================= CONTROLS ================= -->
 <div>
-    <input type="text" id="chatInput" placeholder="Type message...">
-    <button id="sendBtn">Send</button>
+    <button id="muteBtn">Mute</button>
+    <button id="cameraBtn">Camera Off</button>
 </div>
 
-<ul id="messages"></ul>
+<hr>
+
+<!-- ================= CHAT SECTION ================= -->
+<div id="chatSection">
+    <h4>Chat</h4>
+    <input type="text" id="chatInput" placeholder="Type message...">
+    <button id="sendBtn">Send</button>
+    <ul id="messages"></ul>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
