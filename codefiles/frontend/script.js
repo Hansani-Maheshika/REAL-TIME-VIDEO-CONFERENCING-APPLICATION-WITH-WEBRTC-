@@ -22,6 +22,14 @@ const roomInput = document.getElementById("roomInput");
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
 
+// Modal Elements
+const copyModal = document.getElementById("copyModal");
+const generatedLinkInput = document.getElementById("generatedLink");
+const generatedIdInput = document.getElementById("generatedId");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+const copyIdBtn = document.getElementById("copyIdBtn");
+const startMeetingBtn = document.getElementById("startMeetingBtn");
+
 // App settings
 const BASE_URL = "https://real-time-video-conferencing-application-18ln.onrender.com/";
 
@@ -44,8 +52,8 @@ const servers = {
 
 // ================= LOGIN & MEETING LOGIC =================
 
-// 1. CREATE MEETING
-createBtn.onclick = async () => {
+// 1. CREATE MEETING (Opens the Copy Modal)
+createBtn.onclick = () => {
     username = usernameInput.value.trim();
     if (!username) {
         alert("Please enter Your Name first!");
@@ -56,10 +64,39 @@ createBtn.onclick = async () => {
     const generatedRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
     currentRoom = generatedRoomId;
     
-    // Alert the user with the Link and ID so they can share it
-    alert(`✅ Meeting Created!\n\nShare these details with your participants:\n\n🌐 Link: ${BASE_URL}\n🔑 Meeting ID: ${currentRoom}\n\n(They will need to enter this ID to join)`);
+    // Set the link and ID in the modal inputs
+    generatedLinkInput.value = `${BASE_URL}?room=${currentRoom}`;
+    generatedIdInput.value = currentRoom;
+    
+    // Display the custom popup modal
+    copyModal.style.display = "flex";
+};
 
-    // Proceed to enter the meeting
+// Copy Link Logic
+copyLinkBtn.onclick = () => {
+    navigator.clipboard.writeText(generatedLinkInput.value);
+    copyLinkBtn.textContent = "Copied!";
+    copyLinkBtn.style.background = "#10b981"; // Turn green
+    setTimeout(() => {
+        copyLinkBtn.textContent = "Copy";
+        copyLinkBtn.style.background = "#334155"; // Revert color
+    }, 2000);
+};
+
+// Copy ID Logic
+copyIdBtn.onclick = () => {
+    navigator.clipboard.writeText(generatedIdInput.value);
+    copyIdBtn.textContent = "Copied!";
+    copyIdBtn.style.background = "#10b981"; // Turn green
+    setTimeout(() => {
+        copyIdBtn.textContent = "Copy";
+        copyIdBtn.style.background = "#334155"; // Revert color
+    }, 2000);
+};
+
+// Start Meeting from Modal
+startMeetingBtn.onclick = async () => {
+    copyModal.style.display = "none"; // Hide modal
     enterMeeting();
 };
 
@@ -78,8 +115,6 @@ joinBtn.onclick = async () => {
     }
 
     currentRoom = roomId;
-    
-    // Proceed to enter the meeting
     enterMeeting();
 };
 
