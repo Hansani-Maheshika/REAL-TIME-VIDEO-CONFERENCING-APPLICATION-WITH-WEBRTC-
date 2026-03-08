@@ -9,18 +9,43 @@
 <body>
 
 <div id="loginScreen" class="zoom-login-screen">
-    <div class="login-box">
-        <h1 class="app-title">EasyMeet</h1>
-        <p class="app-subtitle">Enter details to start or join a real-time meeting.</p>
+    <div class="landing-container">
         
-        <div class="input-group">
-            <input type="text" id="username" placeholder="Your Name" required>
-        </div>
-        <div class="input-group">
-            <input type="text" id="roomInput" placeholder="Meeting ID (Leave empty to create new)" required>
+        <div class="landing-card" id="create-card">
+            <h2 class="app-title">Create Meeting</h2>
+            <div id="create-form-section">
+                <div class="input-group">
+                    <input type="text" id="createName" placeholder="Enter Your Name" required>
+                </div>
+                <button id="createMeetingBtn" class="primary-btn w-100">Create Meeting ➔</button>
+            </div>
+            
+            <div id="share-info-section" class="hidden">
+                <p class="success-text">Meeting Created Successfully!</p>
+                <div class="copy-group">
+                    <span id="display-id" class="truncate-text"></span>
+                    <button id="copyIdBtn" class="secondary-btn">Copy ID</button>
+                </div>
+                <div class="copy-group">
+                    <span id="display-link" class="truncate-text"></span>
+                    <button id="copyLinkBtn" class="secondary-btn">Copy Link</button>
+                </div>
+                <p class="hint-text">Share these details with others before joining.</p>
+                <button id="joinAsHostBtn" class="primary-btn w-100 join-host-btn">Join Meeting Now</button>
+            </div>
         </div>
 
-        <button id="loginBtn" class="primary-btn w-100">Proceed to Meeting</button>
+        <div class="landing-card" id="join-card">
+            <h2 class="app-title">Join Meeting</h2>
+            <div class="input-group">
+                <input type="text" id="joinId" placeholder="Enter Meeting ID" required>
+            </div>
+            <div class="input-group">
+                <input type="text" id="joinName" placeholder="Enter Your Name" required>
+            </div>
+            <button id="joinMeetingBtn" class="primary-btn w-100">Join Meeting ➔</button>
+        </div>
+
     </div>
 </div>
 
@@ -29,6 +54,7 @@
     <div class="top-bar">
         <div class="meeting-info">
             <span class="secure-icon">🔒</span>
+           
             <span>EasyMeet Secured Meeting</span>
         </div>
         <div class="timer" id="callTimer">00:00</div>
@@ -42,12 +68,14 @@
 
         <div id="chatPanel" class="chat-panel">
             <div class="chat-header">
+     
                 <h3>Meeting Chat</h3>
                 <button id="closeChatBtn" class="close-panel-btn">✕</button>
             </div>
             <ul id="messages" class="message-list"></ul>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="Click here to type... (Press Enter to send)">
+     
                 <button id="sendBtn" class="icon-send-btn">➤</button>
             </div>
         </div>
@@ -57,11 +85,13 @@
         
         <div class="controls-left">
             <button id="muteBtn" class="control-btn active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path 
+d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 <span>Mute</span>
             </button>
             <button id="cameraBtn" class="control-btn active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon 
+points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 <span>Camera Off</span>
             </button>
         </div>
@@ -69,27 +99,32 @@
         <div class="controls-center">
             
             <div class="reaction-wrapper">
+        
                 <div id="reactionMenu" class="reaction-menu hidden">
                     <button class="emoji-btn">👍</button>
                     <button class="emoji-btn">❤️</button>
                     <button class="emoji-btn">😂</button>
                     <button class="emoji-btn">😮</button>
+     
                     <button class="emoji-btn">🎉</button>
                 </div>
                 <button id="reactBtn" class="control-btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                    <span>React</span>
+   
+                  <span>React</span>
                 </button>
             </div>
 
             <button id="toggleChatBtn" class="control-btn">
                 <div class="icon-notification-wrapper">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg width="24" height="24" viewBox="0 
+0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     <span id="chatNotificationBadge" class="notification-badge hidden"></span>
                 </div>
                 <span>Chat</span>
             </button>
 
+         
             <button id="recordBtn" class="control-btn record">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="red"/></svg>
                 <span>Record</span>
@@ -98,6 +133,7 @@
 
         <div class="controls-right">
             <button id="leaveBtn" class="end-btn">End</button>
+  
         </div>
     </div>
 </div>

@@ -2,7 +2,6 @@
 const socket = io();
 
 // ================= HTML ELEMENTS =================
-const loginBtn = document.getElementById("loginBtn");
 const loginScreen = document.getElementById("loginScreen");
 const meetingScreen = document.getElementById("meetingScreen");
 const leaveBtn = document.getElementById("leaveBtn");
@@ -17,12 +16,14 @@ const toggleChatBtn = document.getElementById("toggleChatBtn");
 const closeChatBtn = document.getElementById("closeChatBtn");
 const chatPanel = document.getElementById("chatPanel");
 const chatNotificationBadge = document.getElementById("chatNotificationBadge");
+
 const reactBtn = document.getElementById("reactBtn");
 const reactionMenu = document.getElementById("reactionMenu");
 
 const sendBtn = document.getElementById("sendBtn");
 const chatInput = document.getElementById("chatInput");
 const messages = document.getElementById("messages");
+
 const videoContainer = document.getElementById("videoContainer");
 const callTimer = document.getElementById("callTimer");
 
@@ -33,7 +34,7 @@ let timerInterval;
 let seconds = 0;
 
 // Chat is now open by default!
-let isChatPanelOpen = true; 
+let isChatPanelOpen = true;
 
 // Media Recorder (Preserved)
 let mediaRecorder = null;
@@ -47,20 +48,19 @@ const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
-// ================= LOGIN LOGIC =================
-loginBtn.onclick = async () => {
+// ================= NEW LOGIN LOGIC =================
+const createMeetingBtn = document.getElementById("createMeetingBtn");
+const joinMeetingBtn = document.getElementById("joinMeetingBtn");
+const joinAsHostBtn = document.getElementById("joinAsHostBtn");
+const createFormSection = document.getElementById("create-form-section");
+const shareInfoSection = document.getElementById("share-info-section");
 
-    username = document.getElementById("username").value.trim();
-    const roomIdInput = document.getElementById("roomInput").value.trim();
+let generatedRoomId = "";
 
-    if (!username) {
-        alert("Please enter Your Name.");
-        return;
-    }
-
-    if (currentRoom === "") {
-        currentRoom = roomIdInput || "Room1"; // default if empty
-    }
+// Helper to transition into the meeting room
+async function proceedToMeeting(userNameInput, roomIdInput) {
+    username = userNameInput;
+    currentRoom = roomIdInput;
 
     loginScreen.style.display = "none";
     meetingScreen.style.display = "block";
@@ -68,6 +68,62 @@ loginBtn.onclick = async () => {
     startTimer();
     await startMedia();
     socket.emit("join-room", currentRoom);
+}
+
+// Helper to generate a random ID
+function generateMeetingId() {
+    return Math.random().toString(36).substring(2, 11);
+}
+
+// --- 1. CREATE MEETING FLOW ---
+createMeetingBtn.onclick = () => {
+    const name = document.getElementById("createName").value.trim();
+    if (!name) { alert("Please enter your name to create a meeting."); return; }
+
+    generatedRoomId = generateMeetingId();
+    const link = `${window.location.origin}/?room=${generatedRoomId}`;
+
+    document.getElementById("display-id").textContent = `ID: ${generatedRoomId}`;
+    document.getElementById("display-link").textContent = `Link: ${link}`;
+
+    createFormSection.classList.add("hidden");
+    shareInfoSection.classList.remove("hidden");
+};
+
+// Copy Buttons
+document.getElementById("copyIdBtn").onclick = () => {
+    navigator.clipboard.writeText(generatedRoomId);
+    alert("Meeting ID Copied!");
+};
+
+document.getElementById("copyLinkBtn").onclick = () => {
+    const link = `${window.location.origin}/?room=${generatedRoomId}`;
+    navigator.clipboard.writeText(link);
+    alert("Meeting Link Copied!");
+};
+
+// Join after creating
+joinAsHostBtn.onclick = () => {
+    const name = document.getElementById("createName").value.trim();
+    proceedToMeeting(name, generatedRoomId);
+};
+
+// --- 2. JOIN MEETING FLOW ---
+joinMeetingBtn.onclick = () => {
+    const name = document.getElementById("joinName").value.trim();
+    const roomId = document.getElementById("joinId").value.trim();
+
+    if (!name || !roomId) { alert("Please enter both Meeting ID and Your Name."); return; }
+    proceedToMeeting(name, roomId);
+};
+
+// Auto-fill Room ID if joining via a shared link (e.g., ?room=xyz123)
+window.onload = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('room')) {
+        document.getElementById("joinId").value = urlParams.get('room');
+        document.getElementById("joinName").focus();
+    }
 };
 
 // ================= CHAT UI LOGIC =================
@@ -80,10 +136,12 @@ chatInput.addEventListener("keypress", function(e) {
 // Toggle Chat Panel visibility
 toggleChatBtn.onclick = () => {
     isChatPanelOpen = !isChatPanelOpen;
+
     if(isChatPanelOpen) {
         chatPanel.classList.remove("hidden");
         chatNotificationBadge.classList.add("hidden"); 
         chatInput.focus();
+
     } else {
         chatPanel.classList.add("hidden");
     }
@@ -118,6 +176,7 @@ document.querySelectorAll(".emoji-btn").forEach(btn => {
         // Send to others via existing chat channel with a special flag
         socket.emit("chat-message", {
             user: username,
+   
             text: emoji,
             isReaction: true 
         });
@@ -128,10 +187,12 @@ function showFloatingEmoji(emoji) {
     const el = document.createElement("div");
     el.className = "floating-emoji";
     el.textContent = emoji;
+
     el.style.left = `${20 + Math.random() * 20}%`; 
     
     videoContainer.appendChild(el);
-    setTimeout(() => el.remove(), 4000); 
+    setTimeout(() => el.remove(), 4000);
+
 }
 
 // ================= TIMER LOGIC =================
@@ -142,6 +203,7 @@ function startTimer() {
         let secs = String(seconds % 60).padStart(2, '0');
         callTimer.textContent = `${mins}:${secs}`;
     }, 1000);
+
 }
 
 // ================= MEDIA SETUP =================
@@ -150,6 +212,7 @@ async function startMedia() {
         video: true,
         audio: true
     });
+
     localVideo.srcObject = localStream;
 }
 
@@ -157,6 +220,7 @@ async function startMedia() {
 function createPeerConnection(userId, createOffer = false) {
 
     const pc = new RTCPeerConnection(servers);
+
     peerConnections[userId] = pc;
 
     localStream.getTracks().forEach(track => {
@@ -165,12 +229,15 @@ function createPeerConnection(userId, createOffer = false) {
 
     pc.ontrack = event => {
         let remoteVideo = document.getElementById("video-" + userId);
+
         if (!remoteVideo) {
             remoteVideo = document.createElement("video");
+
             remoteVideo.id = "video-" + userId;
             remoteVideo.autoplay = true;
             remoteVideo.playsInline = true;
             videoContainer.appendChild(remoteVideo);
+
         }
         remoteVideo.srcObject = event.streams[0];
     };
@@ -181,6 +248,7 @@ function createPeerConnection(userId, createOffer = false) {
                 candidate: event.candidate,
                 to: userId
             });
+
         }
     };
 
@@ -190,9 +258,11 @@ function createPeerConnection(userId, createOffer = false) {
             .then(() => {
                 socket.emit("offer", {
                     offer: pc.localDescription,
+                   
                     to: userId
                 });
             });
+
     }
 
     return pc;
@@ -254,6 +324,7 @@ sendBtn.onclick = () => {
         text: message,
         isReaction: false 
     });
+
     chatInput.value = "";
 };
 
@@ -275,15 +346,18 @@ function appendMessage(user, text) {
     li.innerHTML = `<strong>${user}:</strong> ${text}`;
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
+
 }
 
 // ================= BOTTOM CONTROLS =================
 muteBtn.onclick = () => {
     const audioTrack = localStream.getAudioTracks()[0];
     audioTrack.enabled = !audioTrack.enabled;
+
     if (audioTrack.enabled) {
         muteBtn.classList.remove("inactive"); muteBtn.classList.add("active");
         muteBtn.querySelector('span').textContent = "Mute";
+
     } else {
         muteBtn.classList.add("inactive"); muteBtn.classList.remove("active");
         muteBtn.querySelector('span').textContent = "Unmute";
@@ -293,9 +367,11 @@ muteBtn.onclick = () => {
 cameraBtn.onclick = () => {
     const videoTrack = localStream.getVideoTracks()[0];
     videoTrack.enabled = !videoTrack.enabled;
+
     if (videoTrack.enabled) {
         cameraBtn.classList.remove("inactive"); cameraBtn.classList.add("active");
         cameraBtn.querySelector('span').textContent = "Camera Off";
+
     } else {
         cameraBtn.classList.add("inactive"); cameraBtn.classList.remove("active");
         cameraBtn.querySelector('span').textContent = "Camera On";
@@ -315,6 +391,7 @@ recordBtn.onclick = async () => {
         try {
 
             recordingCanvas = document.createElement("canvas");
+
             const ctx = recordingCanvas.getContext("2d");
 
             recordingCanvas.width = 1280;
@@ -323,12 +400,14 @@ recordBtn.onclick = async () => {
             function drawFrame() {
 
                 ctx.fillStyle = "black";
+
                 ctx.fillRect(0, 0, recordingCanvas.width, recordingCanvas.height);
 
                 const videos = document.querySelectorAll("video");
                 const videoArray = Array.from(videos);
 
                 const cols = Math.ceil(Math.sqrt(videoArray.length));
+
                 const rows = Math.ceil(videoArray.length / cols);
 
                 const videoWidth = recordingCanvas.width / cols;
@@ -341,22 +420,27 @@ recordBtn.onclick = async () => {
                         const col = index % cols;
                         const row = Math.floor(index / cols);
 
+               
                         ctx.drawImage(
                             video,
                             col * videoWidth,
                             row * videoHeight,
+   
                             videoWidth,
                             videoHeight
                         );
                     }
+   
                 });
 
                 recordingAnimation = requestAnimationFrame(drawFrame);
+
             }
 
             drawFrame();
 
             const canvasStream = recordingCanvas.captureStream(30);
+
             const audioContext = new AudioContext();
             const destination = audioContext.createMediaStreamDestination();
 
@@ -367,7 +451,8 @@ recordBtn.onclick = async () => {
                 pc.getReceivers().forEach(receiver => {
                     if (receiver.track && receiver.track.kind === "audio") {
                         const remoteStream = new MediaStream([receiver.track]);
-                        const remoteSource = audioContext.createMediaStreamSource(remoteStream);
+                        const remoteSource 
+= audioContext.createMediaStreamSource(remoteStream);
                         remoteSource.connect(destination);
                     }
                 });
@@ -383,16 +468,19 @@ recordBtn.onclick = async () => {
 
             mediaRecorder.ondataavailable = e => {
                 if (e.data.size > 0) recordedChunks.push(e.data);
+
             };
 
             mediaRecorder.onstop = () => {
 
                 cancelAnimationFrame(recordingAnimation);
+
                 const blob = new Blob(recordedChunks, { type: "video/webm" });
                 const url = URL.createObjectURL(blob);
 
                 const a = document.createElement("a");
                 a.href = url;
+
                 a.download = `MeetingRecord_${Date.now()}.webm`;
                 a.click();
 
@@ -406,20 +494,15 @@ recordBtn.onclick = async () => {
         } catch (err) {
             console.error(err);
             alert("Recording failed.");
+
         }
 
     } else {
 
         mediaRecorder.stop();
         mediaRecorder = null;
+
         recordBtn.querySelector('span').textContent = "⏺ Record";
         recordBtn.classList.remove("recording");
     }
 };
-
-// Check for existing room parameter on load
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has('room')) {
-    currentRoom = urlParams.get('room');
-    document.getElementById("roomInput").value = currentRoom;
-}

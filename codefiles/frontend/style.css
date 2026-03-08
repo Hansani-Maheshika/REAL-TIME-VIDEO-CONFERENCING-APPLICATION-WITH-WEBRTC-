@@ -2,7 +2,7 @@
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background: #101010; 
+    background: #101010;
     color: #e0e0e0;
     overflow: hidden;
     height: 100vh;
@@ -13,7 +13,7 @@ button {
     transition: all 0.2s ease;
 }
 
-/* ================= LOGIN SCREEN DESIGN ================= */
+/* ================= NEW LANDING SCREEN DESIGN ================= */
 .zoom-login-screen {
     display: flex;
     justify-content: center;
@@ -22,29 +22,35 @@ button {
     background: radial-gradient(circle, rgba(30,30,30,1) 0%, rgba(10,10,10,1) 100%);
 }
 
-.login-box {
-    background: #1e1e1e;
-    padding: 50px;
-    border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    width: 380px;
-    text-align: center;
-    border: 1px solid #333;
+.landing-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    max-width: 900px;
+    width: 90%;
+    justify-content: center;
 }
 
+.landing-card {
+    background: #1e1e1e;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    flex: 1;
+    min-width: 300px;
+    border: 1px solid #333;
+    text-align: center;
+}
+
+.landing-card h2 { margin-bottom: 25px; }
+
 .app-title {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 700;
-    margin: 0 0 10px 0;
+    margin: 0 0 20px 0;
     background: linear-gradient(135deg, #0e72ed 0%, #0c61c9 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-.app-subtitle {
-    font-size: 14px;
-    color: #94a3b8;
-    margin: 0 0 40px 0;
 }
 
 .input-group input {
@@ -73,6 +79,45 @@ button {
 .primary-btn:active { transform: scale(0.98); }
 .w-100 { width: 100%; }
 
+.success-text { color: #10b981; font-weight: bold; margin-bottom: 15px; font-size: 16px; }
+.hint-text { color: #94a3b8; font-size: 12px; margin: 15px 0; }
+
+.copy-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f0f0f;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #444;
+}
+
+.truncate-text {
+    font-size: 13px;
+    color: #ccc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    max-width: 65%;
+}
+
+.secondary-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.secondary-btn:hover { background: #555; }
+.join-host-btn { background: #10b981; margin-top: 10px; }
+.join-host-btn:hover { background: #059669; }
+
 /* ================= MEETING SCREEN LAYOUT ================= */
 .top-bar {
     position: fixed;
@@ -96,7 +141,8 @@ button {
 .main-workspace {
     display: flex;
     width: 100vw;
-    height: calc(100vh - 80px); /* Control bar is 80px */
+    height: calc(100vh - 80px);
+    /* Control bar is 80px */
     position: absolute;
     top: 0;
     left: 0;
@@ -104,10 +150,11 @@ button {
 
 /* ================= VIDEO GRID (Shares space with chat) ================= */
 .video-grid {
-    flex: 1; /* Automatically resizes based on chat visibility */
+    flex: 1;
+    /* Automatically resizes based on chat visibility */
     display: grid;
     gap: 15px;
-    padding: 65px 20px 20px 20px; 
+    padding: 65px 20px 20px 20px;
     transition: all 0.3s ease;
     overflow: hidden;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -127,13 +174,14 @@ video {
 /* ================= CHAT PANEL (Visible by Default) ================= */
 .chat-panel {
     width: 320px;
-    background: #fdfdfd; 
+    background: #fdfdfd;
     border-left: 1px solid #ddd;
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, width 0.3s ease;
     z-index: 200;
-    padding-top: 50px; /* offset for top bar */
+    padding-top: 50px;
+    /* offset for top bar */
 }
 
 .chat-panel.hidden {
@@ -235,7 +283,7 @@ video {
 .control-btn.inactive svg { color: red; } 
 
 .end-btn {
-    background: #dc2626; 
+    background: #dc2626;
     color: white;
     border: none;
     padding: 10px 25px;
@@ -249,7 +297,8 @@ video {
 .icon-notification-wrapper { position: relative; display: inline-block; }
 .notification-badge {
     position: absolute;
-    top: -5px; right: -8px;
+    top: -5px;
+    right: -8px;
     width: 10px; height: 10px;
     background: #dc2626; 
     border-radius: 50%;
