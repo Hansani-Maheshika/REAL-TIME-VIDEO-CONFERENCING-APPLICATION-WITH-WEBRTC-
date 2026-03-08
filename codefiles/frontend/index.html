@@ -7,18 +7,32 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="center-screen">
     <div class="login-box">
         <h2>EasyMeet</h2>
-        <input type="text" id="username" placeholder="Enter Username">
-        <input type="password" id="password" placeholder="Enter Password">
-        <input type="text" id="roomInput" placeholder="Meeting ID">
-        <button id="loginBtn">Join Meeting</button>
+        <p class="subtitle">High-quality video conferencing</p>
+        
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Enter Your Name (Required)">
+        </div>
+
+        <div class="action-box">
+            <h3>Start a New Meeting</h3>
+            <p>Generate a unique Meeting ID and link to share</p>
+            <button id="createBtn" class="create-btn">Create Meeting</button>
+        </div>
+
+        <div class="divider"><span>OR</span></div>
+
+        <div class="action-box">
+            <h3>Join an Existing Meeting</h3>
+            <p>Enter the Meeting ID provided by the host</p>
+            <input type="text" id="roomInput" placeholder="Enter Meeting ID">
+            <button id="joinBtn" class="join-btn">Join Meeting</button>
+        </div>
     </div>
 </div>
 
-<!-- MEETING SCREEN -->
 <div id="meetingScreen" style="display:none;">
 
     <div class="top-bar">

@@ -17,41 +17,122 @@ body {
 
 .login-box {
     background: #1e293b;
-    padding: 40px;
+    padding: 35px;
     border-radius: 12px;
-    width: 320px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 360px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
     text-align: center;
     color: white;
 }
 
-.login-box input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 6px;
-    border: none;
-    background: #334155;
-    color: white;
+.login-box h2 {
+    margin-bottom: 5px;
 }
 
-.login-box input::placeholder {
+.subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: white;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+.input-group input::placeholder {
     color: #cbd5e1;
 }
 
-.login-box button {
+.action-box {
+    background: #334155;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.action-box h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    color: #f8fafc;
+}
+
+.action-box p {
+    margin: 0 0 15px 0;
+    font-size: 13px;
+    color: #cbd5e1;
+}
+
+.action-box input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: white;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+.create-btn {
+    width: 100%;
+    padding: 12px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.create-btn:hover {
+    background: #059669;
+}
+
+.join-btn {
+    width: 100%;
+    padding: 12px;
     background: #2563eb;
     color: white;
     border: none;
     border-radius: 6px;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s;
+}
+
+.join-btn:hover {
+    background: #1d4ed8;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px 0;
+    color: #94a3b8;
+    font-size: 12px;
     font-weight: bold;
 }
 
-.login-box button:hover {
-    background: #1d4ed8;
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #475569;
+}
+
+.divider span {
+    padding: 0 10px;
 }
 
 /* ================= TOP BAR ================= */
@@ -77,7 +158,6 @@ body {
     gap: 15px;
     padding: 20px;
     background: #0f172a; /* Dark background */
-
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     grid-auto-rows: 1fr;
 }

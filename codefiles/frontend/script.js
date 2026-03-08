@@ -1,16 +1,13 @@
 // ================= SOCKET =================
-// This will automatically connect to your Render URL since the backend serves the frontend
 const socket = io();
 
 // ================= HTML ELEMENTS =================
-const loginBtn = document.getElementById("loginBtn");
 const loginScreen = document.getElementById("loginScreen");
 const meetingScreen = document.getElementById("meetingScreen");
 const leaveBtn = document.getElementById("leaveBtn");
 const recordBtn = document.getElementById("recordBtn");
 
 const localVideo = document.getElementById("localVideo");
-const roomInput = document.getElementById("roomInput");
 const muteBtn = document.getElementById("muteBtn");
 const cameraBtn = document.getElementById("cameraBtn");
 const sendBtn = document.getElementById("sendBtn");
@@ -18,6 +15,15 @@ const chatInput = document.getElementById("chatInput");
 const messages = document.getElementById("messages");
 const videoContainer = document.getElementById("videoContainer");
 const callTimer = document.getElementById("callTimer");
+
+// Login Elements
+const usernameInput = document.getElementById("username");
+const roomInput = document.getElementById("roomInput");
+const createBtn = document.getElementById("createBtn");
+const joinBtn = document.getElementById("joinBtn");
+
+// App settings
+const BASE_URL = "https://real-time-video-conferencing-application-18ln.onrender.com/";
 
 let localStream;
 let currentRoom = "";
@@ -36,27 +42,56 @@ const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
-// ================= LOGIN =================
-loginBtn.onclick = async () => {
+// ================= LOGIN & MEETING LOGIC =================
 
-    username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+// 1. CREATE MEETING
+createBtn.onclick = async () => {
+    username = usernameInput.value.trim();
+    if (!username) {
+        alert("Please enter Your Name first!");
+        return;
+    }
+
+    // Auto-generate a 6-character Meeting ID
+    const generatedRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    currentRoom = generatedRoomId;
+    
+    // Alert the user with the Link and ID so they can share it
+    alert(`✅ Meeting Created!\n\nShare these details with your participants:\n\n🌐 Link: ${BASE_URL}\n🔑 Meeting ID: ${currentRoom}\n\n(They will need to enter this ID to join)`);
+
+    // Proceed to enter the meeting
+    enterMeeting();
+};
+
+// 2. JOIN MEETING
+joinBtn.onclick = async () => {
+    username = usernameInput.value.trim();
     const roomId = roomInput.value.trim();
 
-    if (!username || !password || !roomId) {
-        alert("Please fill all fields");
+    if (!username) {
+        alert("Please enter Your Name!");
+        return;
+    }
+    if (!roomId) {
+        alert("Please enter the Meeting ID provided by the host!");
         return;
     }
 
     currentRoom = roomId;
+    
+    // Proceed to enter the meeting
+    enterMeeting();
+};
 
+// 3. HELPER FUNCTION TO START THE CALL
+async function enterMeeting() {
     loginScreen.style.display = "none";
     meetingScreen.style.display = "block";
 
     startTimer();
     await startMedia();
     socket.emit("join-room", currentRoom);
-};
+}
 
 // ================= TIMER =================
 function startTimer() {
