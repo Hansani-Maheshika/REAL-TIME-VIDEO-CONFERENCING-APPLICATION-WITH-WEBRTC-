@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "codefiles/frontend/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "codefiles/api/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/codefiles/frontend/index.html"
+    }
+  ]
+}
