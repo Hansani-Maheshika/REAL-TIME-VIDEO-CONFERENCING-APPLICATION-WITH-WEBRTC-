@@ -1,4 +1,5 @@
 // ================= SOCKET =================
+// This will automatically connect to your Render URL since the backend serves the frontend
 const socket = io();
 
 // ================= HTML ELEMENTS =================
@@ -73,7 +74,6 @@ async function startMedia() {
         video: true,
         audio: true
     });
-
     localVideo.srcObject = localStream;
     enableVideoZoom(localVideo);
 }
@@ -97,7 +97,6 @@ function createPeerConnection(userId, createOffer = false) {
 
     pc.ontrack = event => {
         let remoteVideo = document.getElementById("video-" + userId);
-
         if (!remoteVideo) {
             remoteVideo = document.createElement("video");
             remoteVideo.id = "video-" + userId;
@@ -185,12 +184,10 @@ sendBtn.onclick = () => {
     if (!message) return;
 
     appendMessage(username, message);
-
     socket.emit("chat-message", {
         user: username,
         text: message
     });
-
     chatInput.value = "";
 };
 
@@ -269,7 +266,6 @@ recordBtn.onclick = async () => {
             drawFrame();
 
             const canvasStream = recordingCanvas.captureStream(30);
-
             const audioContext = new AudioContext();
             const destination = audioContext.createMediaStreamDestination();
 
@@ -303,7 +299,6 @@ recordBtn.onclick = async () => {
             mediaRecorder.onstop = () => {
 
                 cancelAnimationFrame(recordingAnimation);
-
                 const blob = new Blob(recordedChunks, { type: "video/webm" });
                 const url = URL.createObjectURL(blob);
 
