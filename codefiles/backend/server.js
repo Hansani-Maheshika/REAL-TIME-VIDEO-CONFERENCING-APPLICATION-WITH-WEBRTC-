@@ -6,7 +6,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-app.use(express.static("public"));
+// Serve static files from the frontend directory
+app.use(express.static(__dirname + "/../frontend"));
+
+// Route to serve the main page (index.html)
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/../frontend/index.html");
+});
 
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
