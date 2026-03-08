@@ -2,36 +2,29 @@
 const socket = io();
 
 // ================= HTML ELEMENTS =================
+const loginBtn = document.getElementById("loginBtn");
 const loginScreen = document.getElementById("loginScreen");
 const meetingScreen = document.getElementById("meetingScreen");
 const leaveBtn = document.getElementById("leaveBtn");
-const recordBtn = document.getElementById("recordBtn");
 
 const localVideo = document.getElementById("localVideo");
 const muteBtn = document.getElementById("muteBtn");
 const cameraBtn = document.getElementById("cameraBtn");
+const recordBtn = document.getElementById("recordBtn");
+
+// Chat/Reactions Elements
+const toggleChatBtn = document.getElementById("toggleChatBtn");
+const closeChatBtn = document.getElementById("closeChatBtn");
+const chatPanel = document.getElementById("chatPanel");
+const chatNotificationBadge = document.getElementById("chatNotificationBadge");
+const reactBtn = document.getElementById("reactBtn");
+const reactionMenu = document.getElementById("reactionMenu");
+
 const sendBtn = document.getElementById("sendBtn");
 const chatInput = document.getElementById("chatInput");
 const messages = document.getElementById("messages");
 const videoContainer = document.getElementById("videoContainer");
 const callTimer = document.getElementById("callTimer");
-
-// Login Elements
-const usernameInput = document.getElementById("username");
-const roomInput = document.getElementById("roomInput");
-const createBtn = document.getElementById("createBtn");
-const joinBtn = document.getElementById("joinBtn");
-
-// Modal Elements
-const copyModal = document.getElementById("copyModal");
-const generatedLinkInput = document.getElementById("generatedLink");
-const generatedIdInput = document.getElementById("generatedId");
-const copyLinkBtn = document.getElementById("copyLinkBtn");
-const copyIdBtn = document.getElementById("copyIdBtn");
-const startMeetingBtn = document.getElementById("startMeetingBtn");
-
-// App settings
-const BASE_URL = "https://real-time-video-conferencing-application-18ln.onrender.com/";
 
 let localStream;
 let currentRoom = "";
@@ -39,6 +32,10 @@ let username = "";
 let timerInterval;
 let seconds = 0;
 
+// Chat is now open by default!
+let isChatPanelOpen = true; 
+
+// Media Recorder (Preserved)
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordingAnimation;
@@ -50,85 +47,94 @@ const servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
-// ================= LOGIN & MEETING LOGIC =================
+// ================= LOGIN LOGIC =================
+loginBtn.onclick = async () => {
 
-// 1. CREATE MEETING (Opens the Copy Modal)
-createBtn.onclick = () => {
-    username = usernameInput.value.trim();
-    if (!username) {
-        alert("Please enter Your Name first!");
-        return;
-    }
-
-    // Auto-generate a 6-character Meeting ID
-    const generatedRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    currentRoom = generatedRoomId;
-    
-    // Set the link and ID in the modal inputs
-    generatedLinkInput.value = `${BASE_URL}?room=${currentRoom}`;
-    generatedIdInput.value = currentRoom;
-    
-    // Display the custom popup modal
-    copyModal.style.display = "flex";
-};
-
-// Copy Link Logic
-copyLinkBtn.onclick = () => {
-    navigator.clipboard.writeText(generatedLinkInput.value);
-    copyLinkBtn.textContent = "Copied!";
-    copyLinkBtn.style.background = "#10b981"; // Turn green
-    setTimeout(() => {
-        copyLinkBtn.textContent = "Copy";
-        copyLinkBtn.style.background = "#334155"; // Revert color
-    }, 2000);
-};
-
-// Copy ID Logic
-copyIdBtn.onclick = () => {
-    navigator.clipboard.writeText(generatedIdInput.value);
-    copyIdBtn.textContent = "Copied!";
-    copyIdBtn.style.background = "#10b981"; // Turn green
-    setTimeout(() => {
-        copyIdBtn.textContent = "Copy";
-        copyIdBtn.style.background = "#334155"; // Revert color
-    }, 2000);
-};
-
-// Start Meeting from Modal
-startMeetingBtn.onclick = async () => {
-    copyModal.style.display = "none"; // Hide modal
-    enterMeeting();
-};
-
-// 2. JOIN MEETING
-joinBtn.onclick = async () => {
-    username = usernameInput.value.trim();
-    const roomId = roomInput.value.trim();
+    username = document.getElementById("username").value.trim();
+    const roomIdInput = document.getElementById("roomInput").value.trim();
 
     if (!username) {
-        alert("Please enter Your Name!");
-        return;
-    }
-    if (!roomId) {
-        alert("Please enter the Meeting ID provided by the host!");
+        alert("Please enter Your Name.");
         return;
     }
 
-    currentRoom = roomId;
-    enterMeeting();
-};
+    if (currentRoom === "") {
+        currentRoom = roomIdInput || "Room1"; // default if empty
+    }
 
-// 3. HELPER FUNCTION TO START THE CALL
-async function enterMeeting() {
     loginScreen.style.display = "none";
     meetingScreen.style.display = "block";
 
     startTimer();
     await startMedia();
     socket.emit("join-room", currentRoom);
+};
+
+// ================= CHAT UI LOGIC =================
+
+// Send message if Enter is pressed
+chatInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") { sendBtn.click(); }
+});
+
+// Toggle Chat Panel visibility
+toggleChatBtn.onclick = () => {
+    isChatPanelOpen = !isChatPanelOpen;
+    if(isChatPanelOpen) {
+        chatPanel.classList.remove("hidden");
+        chatNotificationBadge.classList.add("hidden"); 
+        chatInput.focus();
+    } else {
+        chatPanel.classList.add("hidden");
+    }
+};
+
+// Close Chat Panel
+closeChatBtn.onclick = () => {
+    isChatPanelOpen = false;
+    chatPanel.classList.add("hidden");
+};
+
+// ================= REACTIONS UI LOGIC =================
+reactBtn.onclick = () => {
+    reactionMenu.classList.toggle("hidden");
+};
+
+// Close reaction menu if clicking outside
+document.addEventListener("click", function(event) {
+    if (!reactBtn.contains(event.target) && !reactionMenu.contains(event.target)) {
+        reactionMenu.classList.add("hidden");
+    }
+});
+
+// Handle Emoji Clicks
+document.querySelectorAll(".emoji-btn").forEach(btn => {
+    btn.onclick = (e) => {
+        const emoji = e.target.textContent;
+        reactionMenu.classList.add("hidden");
+        
+        showFloatingEmoji(emoji);
+        
+        // Send to others via existing chat channel with a special flag
+        socket.emit("chat-message", {
+            user: username,
+            text: emoji,
+            isReaction: true 
+        });
+    };
+});
+
+function showFloatingEmoji(emoji) {
+    const el = document.createElement("div");
+    el.className = "floating-emoji";
+    el.textContent = emoji;
+    el.style.left = `${20 + Math.random() * 20}%`; 
+    
+    videoContainer.appendChild(el);
+    setTimeout(() => el.remove(), 4000); 
 }
 
-// ================= TIMER =================
+// ================= TIMER LOGIC =================
 function startTimer() {
     timerInterval = setInterval(() => {
         seconds++;
@@ -138,24 +144,16 @@ function startTimer() {
     }, 1000);
 }
 
-// ================= START MEDIA =================
+// ================= MEDIA SETUP =================
 async function startMedia() {
     localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
     });
     localVideo.srcObject = localStream;
-    enableVideoZoom(localVideo);
 }
 
-// ================= VIDEO ZOOM =================
-function enableVideoZoom(videoElement) {
-    videoElement.onclick = () => {
-        videoElement.classList.toggle("fullscreen-video");
-    };
-}
-
-// ================= PEER CONNECTION =================
+// ================= WEBRTC PEER CONNECTION =================
 function createPeerConnection(userId, createOffer = false) {
 
     const pc = new RTCPeerConnection(servers);
@@ -172,11 +170,8 @@ function createPeerConnection(userId, createOffer = false) {
             remoteVideo.id = "video-" + userId;
             remoteVideo.autoplay = true;
             remoteVideo.playsInline = true;
-
-            enableVideoZoom(remoteVideo);
             videoContainer.appendChild(remoteVideo);
         }
-
         remoteVideo.srcObject = event.streams[0];
     };
 
@@ -248,7 +243,7 @@ socket.on("user-disconnected", userId => {
     if (video) video.remove();
 });
 
-// ================= CHAT =================
+// ================= CHAT SOCKET LOGIC =================
 sendBtn.onclick = () => {
     const message = chatInput.value.trim();
     if (!message) return;
@@ -256,37 +251,63 @@ sendBtn.onclick = () => {
     appendMessage(username, message);
     socket.emit("chat-message", {
         user: username,
-        text: message
+        text: message,
+        isReaction: false 
     });
     chatInput.value = "";
 };
 
 socket.on("chat-message", data => {
-    appendMessage(data.user, data.text);
+    if (data.isReaction) {
+        showFloatingEmoji(data.text);
+    } else {
+        appendMessage(data.user, data.text);
+        
+        // Show notification badge if chat is closed
+        if (!isChatPanelOpen) {
+            chatNotificationBadge.classList.remove("hidden");
+        }
+    }
 });
 
 function appendMessage(user, text) {
     const li = document.createElement("li");
-    li.textContent = `${user}: ${text}`;
+    li.innerHTML = `<strong>${user}:</strong> ${text}`;
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
 }
 
-// ================= MUTE =================
+// ================= BOTTOM CONTROLS =================
 muteBtn.onclick = () => {
     const audioTrack = localStream.getAudioTracks()[0];
     audioTrack.enabled = !audioTrack.enabled;
-    muteBtn.textContent = audioTrack.enabled ? "🎤 Mute" : "🔇 Unmute";
+    if (audioTrack.enabled) {
+        muteBtn.classList.remove("inactive"); muteBtn.classList.add("active");
+        muteBtn.querySelector('span').textContent = "Mute";
+    } else {
+        muteBtn.classList.add("inactive"); muteBtn.classList.remove("active");
+        muteBtn.querySelector('span').textContent = "Unmute";
+    }
 };
 
-// ================= CAMERA =================
 cameraBtn.onclick = () => {
     const videoTrack = localStream.getVideoTracks()[0];
     videoTrack.enabled = !videoTrack.enabled;
-    cameraBtn.textContent = videoTrack.enabled ? "📷 Camera Off" : "📷 Camera On";
+    if (videoTrack.enabled) {
+        cameraBtn.classList.remove("inactive"); cameraBtn.classList.add("active");
+        cameraBtn.querySelector('span').textContent = "Camera Off";
+    } else {
+        cameraBtn.classList.add("inactive"); cameraBtn.classList.remove("active");
+        cameraBtn.querySelector('span').textContent = "Camera On";
+    }
 };
 
-// ================= INTERNAL MEETING RECORD =================
+leaveBtn.onclick = () => {
+    clearInterval(timerInterval);
+    location.reload();
+};
+
+// ================= RECORDING LOGIC =================
 recordBtn.onclick = async () => {
 
     if (!mediaRecorder) {
@@ -339,11 +360,9 @@ recordBtn.onclick = async () => {
             const audioContext = new AudioContext();
             const destination = audioContext.createMediaStreamDestination();
 
-            // local mic
             const localSource = audioContext.createMediaStreamSource(localStream);
             localSource.connect(destination);
 
-            // remote audio
             Object.values(peerConnections).forEach(pc => {
                 pc.getReceivers().forEach(receiver => {
                     if (receiver.track && receiver.track.kind === "audio") {
@@ -374,14 +393,15 @@ recordBtn.onclick = async () => {
 
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `Meeting_${Date.now()}.webm`;
+                a.download = `MeetingRecord_${Date.now()}.webm`;
                 a.click();
 
                 URL.revokeObjectURL(url);
             };
 
             mediaRecorder.start();
-            recordBtn.textContent = "⏹ Stop Recording";
+            recordBtn.querySelector('span').textContent = "⏹ Stop Record";
+            recordBtn.classList.add("recording");
 
         } catch (err) {
             console.error(err);
@@ -392,12 +412,14 @@ recordBtn.onclick = async () => {
 
         mediaRecorder.stop();
         mediaRecorder = null;
-        recordBtn.textContent = "⏺ Record";
+        recordBtn.querySelector('span').textContent = "⏺ Record";
+        recordBtn.classList.remove("recording");
     }
 };
 
-// ================= LEAVE =================
-leaveBtn.onclick = () => {
-    clearInterval(timerInterval);
-    location.reload();
-};
+// Check for existing room parameter on load
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('room')) {
+    currentRoom = urlParams.get('room');
+    document.getElementById("roomInput").value = currentRoom;
+}
