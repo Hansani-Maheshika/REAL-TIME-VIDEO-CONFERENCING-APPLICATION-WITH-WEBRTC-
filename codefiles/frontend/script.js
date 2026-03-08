@@ -1,55 +1,39 @@
 // ================= SOCKET =================
 const socket = io();
 
-// ================= HTML ELEMENTS (Refactored to match target) =================
-// Screen containers
+// ================= HTML ELEMENTS =================
+const loginBtn = document.getElementById("loginBtn");
 const loginScreen = document.getElementById("loginScreen");
 const meetingScreen = document.getElementById("meetingScreen");
-const dashboardMain = document.querySelector(".dashboard-main");
+const leaveBtn = document.getElementById("leaveBtn");
 
-// Login/Dashboard Input
-const usernameInput = document.getElementById("username");
-
-// Action Buttons
-const newMeetingBtn = document.getElementById("newMeetingBtn");
-const joinMeetingBtn = document.getElementById("joinMeetingBtn");
-
-// Modals
-const modalContainer = document.getElementById("modalContainer");
-const joinModal = document.getElementById("joinModal");
-const copyModal = document.getElementById("copyModal");
-const joinRoomIdInput = document.getElementById("joinRoomId");
-
-// Copy details modal specific
-const generatedLinkInput = document.getElementById("generatedLink");
-const generatedIdInput = document.getElementById("generatedId");
-
-// Local video area
-const videoContainer = document.getElementById("videoContainer");
 const localVideo = document.getElementById("localVideo");
-const callTimer = document.getElementById("callTimer");
-
-// Control Bar Buttons
 const muteBtn = document.getElementById("muteBtn");
 const cameraBtn = document.getElementById("cameraBtn");
-const leaveBtn = document.getElementById("leaveBtn");
 const recordBtn = document.getElementById("recordBtn");
-const toggleChatBtn = document.getElementById("toggleChatBtn");
 
-// Chat area
-const chatPanel = document.querySelector(".chat-panel");
+// Chat/Reactions Elements
+const toggleChatBtn = document.getElementById("toggleChatBtn");
+const closeChatBtn = document.getElementById("closeChatBtn");
+const chatPanel = document.getElementById("chatPanel");
+const chatNotificationBadge = document.getElementById("chatNotificationBadge");
+const reactBtn = document.getElementById("reactBtn");
+const reactionMenu = document.getElementById("reactionMenu");
+
+const sendBtn = document.getElementById("sendBtn");
 const chatInput = document.getElementById("chatInput");
 const messages = document.getElementById("messages");
-const sendBtn = document.getElementById("sendBtn");
-
-// Base URL for link generation (IMPORTANT: adapt to your server)
-const BASE_URL = window.location.origin;
+const videoContainer = document.getElementById("videoContainer");
+const callTimer = document.getElementById("callTimer");
 
 let localStream;
 let currentRoom = "";
 let username = "";
 let timerInterval;
 let seconds = 0;
+
+// Chat is now open by default!
+let isChatPanelOpen = true; 
 
 // Media Recorder (Preserved)
 let mediaRecorder = null;
@@ -58,100 +42,25 @@ let recordingAnimation;
 let recordingCanvas;
 
 const peerConnections = {};
-const servers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-// ================= LOGIN & ACTION LOGIC (Refactored) =================
+const servers = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
 
-// Host: Automatic Link/ID generation flow
-newMeetingBtn.onclick = () => {
-    username = usernameInput.value.trim();
+// ================= LOGIN LOGIC =================
+loginBtn.onclick = async () => {
+
+    username = document.getElementById("username").value.trim();
+    const roomIdInput = document.getElementById("roomInput").value.trim();
+
     if (!username) {
-        alert("Please enter Your Name first!");
-        usernameInput.focus();
+        alert("Please enter Your Name.");
         return;
     }
 
-    // Auto-generate a 10-character Meeting ID
-    const generatedRoomId = Math.random().toString(36).substring(2, 12).toUpperCase();
-    currentRoom = generatedRoomId;
-    
-    // Set the link and ID in the modal inputs
-    generatedLinkInput.value = `${BASE_URL}?room=${currentRoom}`;
-    generatedIdInput.value = currentRoom;
-    
-    // Display the custom popup modal
-    modalContainer.classList.remove("hidden");
-    copyModal.classList.remove("hidden");
-    joinModal.classList.add("hidden"); // Ensure other modal is closed
-};
-
-// Copy detail functionality (link)
-document.getElementById("copyLinkBtn").onclick = () => {
-    navigator.clipboard.writeText(generatedLinkInput.value);
-    document.getElementById("copyLinkBtn").textContent = "Copied!";
-    setTimeout(() => document.getElementById("copyLinkBtn").textContent = "Copy link", 2000);
-};
-
-// Copy detail functionality (ID)
-document.getElementById("copyIdBtn").onclick = () => {
-    navigator.clipboard.writeText(generatedIdInput.value);
-    document.getElementById("copyIdBtn").textContent = "Copied!";
-    setTimeout(() => document.getElementById("copyIdBtn").textContent = "Copy ID", 2000);
-};
-
-// Confirm Start (after copying)
-document.getElementById("startMeetingBtn").onclick = () => {
-    modalContainer.classList.add("hidden");
-    copyModal.classList.add("hidden");
-    proceedToMeeting();
-};
-
-
-// Participant: Manual Join flow
-joinMeetingBtn.onclick = () => {
-    username = usernameInput.value.trim();
-    if (!username) {
-        alert("Please enter Your Name first!");
-        usernameInput.focus();
-        return;
-    }
-    
-    // Check if RoomID was automatically filled from URL param
     if (currentRoom === "") {
-        // Open the join modal to ask for ID
-        modalContainer.classList.remove("hidden");
-        joinModal.classList.remove("hidden");
-        copyModal.classList.add("hidden"); // Ensure other modal is closed
-        joinRoomIdInput.focus();
-    } else {
-        // ID was already in URL, proceed immediately
-        proceedToMeeting();
+        currentRoom = roomIdInput || "Room1"; // default if empty
     }
-};
-
-// Confirm manual join
-document.getElementById("confirmJoinBtn").onclick = () => {
-    const roomIdInput = joinRoomIdInput.value.trim();
-    if (!roomIdInput) {
-        alert("Please enter the Meeting ID!");
-        return;
-    }
-    currentRoom = roomIdInput;
-    modalContainer.classList.add("hidden");
-    joinModal.classList.add("hidden");
-    proceedToMeeting();
-};
-
-// Cancel manual join
-document.getElementById("cancelJoinBtn").onclick = () => {
-    modalContainer.classList.add("hidden");
-    joinModal.classList.add("hidden");
-};
-
-
-// HELPER: Proceed to meeting function (Starts audio/video and connects)
-async function proceedToMeeting() {
-    if (!username || !currentRoom) return;
 
     loginScreen.style.display = "none";
     meetingScreen.style.display = "block";
@@ -159,19 +68,73 @@ async function proceedToMeeting() {
     startTimer();
     await startMedia();
     socket.emit("join-room", currentRoom);
+};
+
+// ================= CHAT UI LOGIC =================
+
+// Send message if Enter is pressed
+chatInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") { sendBtn.click(); }
+});
+
+// Toggle Chat Panel visibility
+toggleChatBtn.onclick = () => {
+    isChatPanelOpen = !isChatPanelOpen;
+    if(isChatPanelOpen) {
+        chatPanel.classList.remove("hidden");
+        chatNotificationBadge.classList.add("hidden"); 
+        chatInput.focus();
+    } else {
+        chatPanel.classList.add("hidden");
+    }
+};
+
+// Close Chat Panel
+closeChatBtn.onclick = () => {
+    isChatPanelOpen = false;
+    chatPanel.classList.add("hidden");
+};
+
+// ================= REACTIONS UI LOGIC =================
+reactBtn.onclick = () => {
+    reactionMenu.classList.toggle("hidden");
+};
+
+// Close reaction menu if clicking outside
+document.addEventListener("click", function(event) {
+    if (!reactBtn.contains(event.target) && !reactionMenu.contains(event.target)) {
+        reactionMenu.classList.add("hidden");
+    }
+});
+
+// Handle Emoji Clicks
+document.querySelectorAll(".emoji-btn").forEach(btn => {
+    btn.onclick = (e) => {
+        const emoji = e.target.textContent;
+        reactionMenu.classList.add("hidden");
+        
+        showFloatingEmoji(emoji);
+        
+        // Send to others via existing chat channel with a special flag
+        socket.emit("chat-message", {
+            user: username,
+            text: emoji,
+            isReaction: true 
+        });
+    };
+});
+
+function showFloatingEmoji(emoji) {
+    const el = document.createElement("div");
+    el.className = "floating-emoji";
+    el.textContent = emoji;
+    el.style.left = `${20 + Math.random() * 20}%`; 
+    
+    videoContainer.appendChild(el);
+    setTimeout(() => el.remove(), 4000); 
 }
 
-// ================= LIVE CLOCK LOGIC =================
-function updateClock() {
-    const now = new Date();
-    document.getElementById("clockTime").textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    document.getElementById("clockDate").textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-}
-// Start the loop
-setInterval(updateClock, 1000);
-updateClock(); // Run once immediately
-
-// ================= TIMER LOGIC (Preserved) =================
+// ================= TIMER LOGIC =================
 function startTimer() {
     timerInterval = setInterval(() => {
         seconds++;
@@ -181,7 +144,7 @@ function startTimer() {
     }, 1000);
 }
 
-// ================= MEDIA SETUP (Preserved) =================
+// ================= MEDIA SETUP =================
 async function startMedia() {
     localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -190,8 +153,9 @@ async function startMedia() {
     localVideo.srcObject = localStream;
 }
 
-// ================= WEBRTC PEER CONNECTION (Preserved Logic, style adapt) =================
+// ================= WEBRTC PEER CONNECTION =================
 function createPeerConnection(userId, createOffer = false) {
+
     const pc = new RTCPeerConnection(servers);
     peerConnections[userId] = pc;
 
@@ -213,7 +177,10 @@ function createPeerConnection(userId, createOffer = false) {
 
     pc.onicecandidate = event => {
         if (event.candidate) {
-            socket.emit("ice-candidate", { candidate: event.candidate, to: userId });
+            socket.emit("ice-candidate", {
+                candidate: event.candidate,
+                to: userId
+            });
         }
     };
 
@@ -221,59 +188,87 @@ function createPeerConnection(userId, createOffer = false) {
         pc.createOffer()
             .then(offer => pc.setLocalDescription(offer))
             .then(() => {
-                socket.emit("offer", { offer: pc.localDescription, to: userId });
+                socket.emit("offer", {
+                    offer: pc.localDescription,
+                    to: userId
+                });
             });
     }
+
     return pc;
 }
 
-// ================= SOCKET EVENTS (Preserved) =================
-socket.on("existing-users", users => users.forEach(id => createPeerConnection(id, true)));
+// ================= SOCKET EVENTS =================
+socket.on("existing-users", users => {
+    users.forEach(userId => {
+        createPeerConnection(userId, true);
+    });
+});
 
 socket.on("offer", async ({ offer, from }) => {
+
     const pc = createPeerConnection(from);
+
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    socket.emit("answer", { answer: answer, to: from });
+
+    socket.emit("answer", {
+        answer: answer,
+        to: from
+    });
 });
 
 socket.on("answer", async ({ answer, from }) => {
     const pc = peerConnections[from];
-    if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    }
 });
 
 socket.on("ice-candidate", async ({ candidate, from }) => {
     const pc = peerConnections[from];
-    if (pc) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    if (pc) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    }
 });
 
 socket.on("user-disconnected", userId => {
-    if (peerConnections[userId]) { peerConnections[userId].close(); delete peerConnections[userId]; }
+    if (peerConnections[userId]) {
+        peerConnections[userId].close();
+        delete peerConnections[userId];
+    }
+
     const video = document.getElementById("video-" + userId);
     if (video) video.remove();
 });
 
-// ================= CHAT LOGIC (Preserved, Updated toggle) =================
-toggleChatBtn.onclick = () => {
-    chatPanel.classList.toggle("hidden");
-    toggleChatBtn.classList.toggle("active");
-};
-
-// Cause enter to send chat
-chatInput.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") sendBtn.click();
-});
-
+// ================= CHAT SOCKET LOGIC =================
 sendBtn.onclick = () => {
     const message = chatInput.value.trim();
     if (!message) return;
+
     appendMessage(username, message);
-    socket.emit("chat-message", { user: username, text: message });
+    socket.emit("chat-message", {
+        user: username,
+        text: message,
+        isReaction: false 
+    });
     chatInput.value = "";
 };
 
-socket.on("chat-message", data => appendMessage(data.user, data.text));
+socket.on("chat-message", data => {
+    if (data.isReaction) {
+        showFloatingEmoji(data.text);
+    } else {
+        appendMessage(data.user, data.text);
+        
+        // Show notification badge if chat is closed
+        if (!isChatPanelOpen) {
+            chatNotificationBadge.classList.remove("hidden");
+        }
+    }
+});
 
 function appendMessage(user, text) {
     const li = document.createElement("li");
@@ -282,82 +277,149 @@ function appendMessage(user, text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// ================= BOTTOM CONTROLS (Preserved, updated style triggers) =================
+// ================= BOTTOM CONTROLS =================
 muteBtn.onclick = () => {
-    const track = localStream.getAudioTracks()[0];
-    track.enabled = !track.enabled;
-    if (track.enabled) {
+    const audioTrack = localStream.getAudioTracks()[0];
+    audioTrack.enabled = !audioTrack.enabled;
+    if (audioTrack.enabled) {
         muteBtn.classList.remove("inactive"); muteBtn.classList.add("active");
-        muteBtn.querySelector('span').innerHTML = '🎤<br>Mute';
+        muteBtn.querySelector('span').textContent = "Mute";
     } else {
         muteBtn.classList.add("inactive"); muteBtn.classList.remove("active");
-        muteBtn.querySelector('span').innerHTML = '🔇<br>Unmute';
+        muteBtn.querySelector('span').textContent = "Unmute";
     }
 };
 
 cameraBtn.onclick = () => {
-    const track = localStream.getVideoTracks()[0];
-    track.enabled = !track.enabled;
-    if (track.enabled) {
+    const videoTrack = localStream.getVideoTracks()[0];
+    videoTrack.enabled = !videoTrack.enabled;
+    if (videoTrack.enabled) {
         cameraBtn.classList.remove("inactive"); cameraBtn.classList.add("active");
-        cameraBtn.querySelector('span').innerHTML = '📷<br>Camera Off';
+        cameraBtn.querySelector('span').textContent = "Camera Off";
     } else {
         cameraBtn.classList.add("inactive"); cameraBtn.classList.remove("active");
-        cameraBtn.querySelector('span').innerHTML = '🚫<br>Camera On';
+        cameraBtn.querySelector('span').textContent = "Camera On";
     }
 };
 
-leaveBtn.onclick = () => { clearInterval(timerInterval); location.reload(); };
+leaveBtn.onclick = () => {
+    clearInterval(timerInterval);
+    location.reload();
+};
 
-// ================= RECORDING LOGIC (Preserved) =================
+// ================= RECORDING LOGIC =================
 recordBtn.onclick = async () => {
+
     if (!mediaRecorder) {
+
         try {
+
             recordingCanvas = document.createElement("canvas");
             const ctx = recordingCanvas.getContext("2d");
-            recordingCanvas.width = 1280; recordingCanvas.height = 720;
+
+            recordingCanvas.width = 1280;
+            recordingCanvas.height = 720;
 
             function drawFrame() {
+
                 ctx.fillStyle = "black";
                 ctx.fillRect(0, 0, recordingCanvas.width, recordingCanvas.height);
-                const videos = document.querySelectorAll("video");
-                const cols = Math.ceil(Math.sqrt(videos.length)), rows = Math.ceil(videos.length / cols);
-                const w = recordingCanvas.width / cols, h = recordingCanvas.height / rows;
 
-                Array.from(videos).forEach((video, i) => {
-                    if (video.readyState >= 2) ctx.drawImage(video, (i % cols) * w, Math.floor(i / cols) * h, w, h);
+                const videos = document.querySelectorAll("video");
+                const videoArray = Array.from(videos);
+
+                const cols = Math.ceil(Math.sqrt(videoArray.length));
+                const rows = Math.ceil(videoArray.length / cols);
+
+                const videoWidth = recordingCanvas.width / cols;
+                const videoHeight = recordingCanvas.height / rows;
+
+                videoArray.forEach((video, index) => {
+
+                    if (video.readyState >= 2) {
+
+                        const col = index % cols;
+                        const row = Math.floor(index / cols);
+
+                        ctx.drawImage(
+                            video,
+                            col * videoWidth,
+                            row * videoHeight,
+                            videoWidth,
+                            videoHeight
+                        );
+                    }
                 });
+
                 recordingAnimation = requestAnimationFrame(drawFrame);
             }
+
             drawFrame();
 
             const canvasStream = recordingCanvas.captureStream(30);
-            const audioContext = new AudioContext(), destination = audioContext.createMediaStreamDestination();
-            audioContext.createMediaStreamSource(localStream).connect(destination);
-            Object.values(peerConnections).forEach(pc => pc.getReceivers().forEach(r => {
-                if (r.track && r.track.kind === "audio") audioContext.createMediaStreamSource(new MediaStream([r.track])).connect(destination);
-            }));
+            const audioContext = new AudioContext();
+            const destination = audioContext.createMediaStreamDestination();
 
-            const finalStream = new MediaStream([...canvasStream.getVideoTracks(), ...destination.stream.getAudioTracks()]);
-            mediaRecorder = new MediaRecorder(finalStream); recordedChunks = [];
-            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-            mediaRecorder.onstop = () => {
-                cancelAnimationFrame(recordingAnimation);
-                const url = URL.createObjectURL(new Blob(recordedChunks, { type: "video/webm" }));
-                const a = document.createElement("a"); a.href = url; a.download = `MeetingRecord_${Date.now()}.webm`; a.click();
+            const localSource = audioContext.createMediaStreamSource(localStream);
+            localSource.connect(destination);
+
+            Object.values(peerConnections).forEach(pc => {
+                pc.getReceivers().forEach(receiver => {
+                    if (receiver.track && receiver.track.kind === "audio") {
+                        const remoteStream = new MediaStream([receiver.track]);
+                        const remoteSource = audioContext.createMediaStreamSource(remoteStream);
+                        remoteSource.connect(destination);
+                    }
+                });
+            });
+
+            const finalStream = new MediaStream([
+                ...canvasStream.getVideoTracks(),
+                ...destination.stream.getAudioTracks()
+            ]);
+
+            mediaRecorder = new MediaRecorder(finalStream);
+            recordedChunks = [];
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
             };
+
+            mediaRecorder.onstop = () => {
+
+                cancelAnimationFrame(recordingAnimation);
+                const blob = new Blob(recordedChunks, { type: "video/webm" });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `MeetingRecord_${Date.now()}.webm`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+            };
+
             mediaRecorder.start();
-            recordBtn.querySelector('span').innerHTML = '⏹<br>Stop Record'; recordBtn.classList.add("recording");
-        } catch (err) { alert("Recording failed."); }
+            recordBtn.querySelector('span').textContent = "⏹ Stop Record";
+            recordBtn.classList.add("recording");
+
+        } catch (err) {
+            console.error(err);
+            alert("Recording failed.");
+        }
+
     } else {
-        mediaRecorder.stop(); mediaRecorder = null;
-        recordBtn.querySelector('span').innerHTML = '⏺<br>Record'; recordBtn.classList.remove("recording");
+
+        mediaRecorder.stop();
+        mediaRecorder = null;
+        recordBtn.querySelector('span').textContent = "⏺ Record";
+        recordBtn.classList.remove("recording");
     }
 };
 
-// Check for existing room parameter on load (Preserved Feature)
+// Check for existing room parameter on load
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('room')) {
     currentRoom = urlParams.get('room');
-    // We don't need a roomInput anymore, we'll store it in the currentRoom variable.
+    document.getElementById("roomInput").value = currentRoom;
 }
