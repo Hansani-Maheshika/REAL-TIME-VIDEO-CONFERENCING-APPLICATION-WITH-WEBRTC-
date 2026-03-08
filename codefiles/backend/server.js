@@ -1,4 +1,3 @@
-// api/server.js
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
@@ -66,5 +65,6 @@ io.on("connection", (socket) => {
     });
 });
 
-// Export the server so Vercel can use it as a serverless function
-module.exports = server;
+server.listen(3000, "0.0.0.0", () => {
+    console.log("Server running on http://localhost:3000");
+});
