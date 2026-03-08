@@ -3,142 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyMeet - Professional Video Conferencing</title>
+    <title>EasyMeet - Real-time Video Conferencing with WebRTC</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="loginScreen" class="zoom-login-screen">
-    <div class="landing-container">
-        
-        <div class="landing-card" id="create-card">
-            <h2 class="app-title">Create Meeting</h2>
-            <div id="create-form-section">
-                <div class="input-group">
-                    <input type="text" id="createName" placeholder="Enter Your Name" required>
+    <div id="loginScreen">
+        <header>
+            <h1>EasyMeet</h1>
+        </header>
+        <div class="card-container">
+            <div class="card" id="createCard">
+                <h2>Create Meeting</h2>
+                <div class="form-group">
+                    <label for="userNameCreate">User name</label>
+                    <input type="text" id="userNameCreate" placeholder="Enter your name">
                 </div>
-                <button id="createMeetingBtn" class="primary-btn w-100">Create Meeting ➔</button>
-            </div>
-            
-            <div id="share-info-section" class="hidden">
-                <p class="success-text">Meeting Created Successfully!</p>
-                <div class="copy-group">
-                    <span id="display-id" class="truncate-text"></span>
-                    <button id="copyIdBtn" class="secondary-btn">Copy ID</button>
+                <button id="createMeetingBtn" class="btn primary-btn">Create Meeting <i class="icon-arrow-right">-></i></button>
+                
+                <div id="shareInfo" class="share-info hidden">
+                    <h3>Now you can copy share link and ID to share</h3>
+                    <div class="share-item">
+                        <label>Meeting Link:</label>
+                        <span id="meetingLink"></span>
+                        <i class="icon-copy" id="copyLinkIcon" title="Copy Meeting Link">
+                            <svg viewBox="0 0 24 24"><path d="M19 21H8V7h11m0-2H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2m-3-4H4a2 2 0 00-2 2v14h2V3h10V1z"></path></svg>
+                        </i>
+                    </div>
+                    <div class="share-item">
+                        <label>Meeting ID:</label>
+                        <span id="meetingId"></span>
+                        <i class="icon-copy" id="copyIdIcon" title="Copy Meeting ID">
+                            <svg viewBox="0 0 24 24"><path d="M19 21H8V7h11m0-2H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2m-3-4H4a2 2 0 00-2 2v14h2V3h10V1z"></path></svg>
+                        </i>
+                    </div>
+                    <p>Now you can copy share link and ID to share. Other one can join with share link and enter room ID and his name to join particular meeting.</p>
                 </div>
-                <div class="copy-group">
-                    <span id="display-link" class="truncate-text"></span>
-                    <button id="copyLinkBtn" class="secondary-btn">Copy Link</button>
+            </div>
+
+            <div class="card" id="joinCard">
+                <h2>Join Meeting</h2>
+                <div class="form-group">
+                    <label for="meetingIdJoin">Meeting ID</label>
+                    <input type="text" id="meetingIdJoin" placeholder="Enter meeting ID">
                 </div>
-                <p class="hint-text">Share these details with others before joining.</p>
-                <button id="joinAsHostBtn" class="primary-btn w-100 join-host-btn">Join Meeting Now</button>
-            </div>
-        </div>
-
-        <div class="landing-card" id="join-card">
-            <h2 class="app-title">Join Meeting</h2>
-            <div class="input-group">
-                <input type="text" id="joinId" placeholder="Enter Meeting ID" required>
-            </div>
-            <div class="input-group">
-                <input type="text" id="joinName" placeholder="Enter Your Name" required>
-            </div>
-            <button id="joinMeetingBtn" class="primary-btn w-100">Join Meeting ➔</button>
-        </div>
-
-    </div>
-</div>
-
-<div id="meetingScreen" style="display:none;">
-
-    <div class="top-bar">
-        <div class="meeting-info">
-            <span class="secure-icon">🔒</span>
-           
-            <span>EasyMeet Secured Meeting</span>
-        </div>
-        <div class="timer" id="callTimer">00:00</div>
-    </div>
-
-    <div class="main-workspace">
-        
-        <div id="videoContainer" class="video-grid">
-            <video id="localVideo" autoplay muted playsinline></video>
-        </div>
-
-        <div id="chatPanel" class="chat-panel">
-            <div class="chat-header">
-     
-                <h3>Meeting Chat</h3>
-                <button id="closeChatBtn" class="close-panel-btn">✕</button>
-            </div>
-            <ul id="messages" class="message-list"></ul>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Click here to type... (Press Enter to send)">
-     
-                <button id="sendBtn" class="icon-send-btn">➤</button>
+                <div class="form-group">
+                    <label for="userNameJoin">User name</label>
+                    <input type="text" id="userNameJoin" placeholder="Enter your name">
+                </div>
+                <button id="joinMeetingBtn" class="btn primary-btn">Join Meeting <i class="icon-arrow-right">-></i></button>
             </div>
         </div>
     </div>
 
-    <div class="control-bar">
-        
-        <div class="controls-left">
-            <button id="muteBtn" class="control-btn active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path 
-d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                <span>Mute</span>
-            </button>
-            <button id="cameraBtn" class="control-btn active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon 
-points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                <span>Camera Off</span>
-            </button>
-        </div>
-        
-        <div class="controls-center">
-            
-            <div class="reaction-wrapper">
-        
-                <div id="reactionMenu" class="reaction-menu hidden">
-                    <button class="emoji-btn">👍</button>
-                    <button class="emoji-btn">❤️</button>
-                    <button class="emoji-btn">😂</button>
-                    <button class="emoji-btn">😮</button>
-     
-                    <button class="emoji-btn">🎉</button>
+    <div id="meetingScreen" style="display:none;">
+        <div class="meeting-header">
+            <div class="controls-left">
+                <button id="muteBtn" class="control-btn" title="Toggle Microphone">🎤</button>
+                <button id="cameraBtn" class="control-btn" title="Toggle Camera">📹</button>
+            </div>
+            <div id="callTimer" class="timer">00:00</div>
+            <div class="controls-right">
+                <div class="reaction-wrapper">
+                    <div id="reactionMenu" class="reaction-menu hidden">
+                        <button class="emoji-btn">👍</button>
+                        <button class="emoji-btn">❤️</button>
+                        <button class="emoji-btn">😂</button>
+                        <button class="emoji-btn">😮</button>
+                        <button class="emoji-btn">🎉</button>
+                    </div>
+                    <button id="reactBtn" class="control-btn" title="Send Reaction">😊</button>
                 </div>
-                <button id="reactBtn" class="control-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-   
-                  <span>React</span>
+                <button id="recordBtn" class="control-btn" title="Start Recording">🔴 Record</button>
+                <button id="toggleChatBtn" class="control-btn" title="Toggle Chat">
+                    💬 Chat <span id="chatNotificationBadge" class="notification-badge hidden"></span>
                 </button>
+                <button id="leaveBtn" class="control-btn leave-btn" title="Leave Meeting">Close Meeting</button>
             </div>
-
-            <button id="toggleChatBtn" class="control-btn">
-                <div class="icon-notification-wrapper">
-                    <svg width="24" height="24" viewBox="0 
-0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span id="chatNotificationBadge" class="notification-badge hidden"></span>
-                </div>
-                <span>Chat</span>
-            </button>
-
-         
-            <button id="recordBtn" class="control-btn record">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="red"/></svg>
-                <span>Record</span>
-            </button>
         </div>
-
-        <div class="controls-right">
-            <button id="leaveBtn" class="end-btn">End</button>
-  
+        <div class="meeting-content">
+            <div id="videoContainer" class="video-grid">
+                <video id="localVideo" autoplay muted playsinline></video>
+            </div>
+            <div id="chatPanel" class="chat-panel hidden">
+                <div class="chat-header">
+                    <h3>Chat</h3>
+                    <button id="closeChatBtn" class="close-panel-btn">✕</button>
+                </div>
+                <ul id="messages" class="message-list"></ul>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type a message...">
+                    <button id="sendBtn" class="btn send-btn">Send</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
