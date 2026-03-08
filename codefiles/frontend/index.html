@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>EasyMeet</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="center-screen">
+    <div class="login-box">
+        <h2>EasyMeet</h2>
+        <input type="text" id="username" placeholder="Enter Username">
+        <input type="password" id="password" placeholder="Enter Password">
+        <input type="text" id="roomInput" placeholder="Meeting ID">
+        <button id="loginBtn">Join Meeting</button>
+    </div>
+</div>
+
+<!-- MEETING SCREEN -->
+<div id="meetingScreen" style="display:none;">
+
+    <div class="top-bar">
+        <span>EasyMeet</span>
+        <span id="callTimer">00:00</span>
+    </div>
+
+    <div class="main-container">
+
+        <div id="videoContainer" class="video-grid">
+            <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+
+        <div class="chat-panel">
+            <h3>Chat</h3>
+            <ul id="messages"></ul>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Type message...">
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="control-bar">
+        <button id="muteBtn">🎤 Mute</button>
+        <button id="cameraBtn">📷 Camera Off</button>
+        <button id="recordBtn">⏺ Record</button>
+        <button id="leaveBtn" class="leave">Leave</button>
+    </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
